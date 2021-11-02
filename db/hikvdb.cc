@@ -13,7 +13,7 @@ namespace hikvdb {
             .store_size = 1024 * 1024 * 1024,
             .shard_size = 625000 * 16 * 4,
             .shard_num = 256,
-            .message_queue_shard_num = 4,
+            .message_queue_shard_num = 16,
             .log_path_ = "/mnt/pmem/hikv/",
             .log_size_ = 60UL * 1024 * 1024 * 1024,
             .cceh_path_ = "/mnt/pmem/hikv/",

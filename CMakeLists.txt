@@ -4,6 +4,7 @@ project(ycsb)
 set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 
 include(FindThreads)
 find_package(PkgConfig REQUIRED)
@@ -148,6 +149,8 @@ if (WITH_METAKV)
             "db/metakv_db.cc"
             "db/metakv_db.h"
             )
+   # add_definitions(-DSIMPLEBUDDY)
+    add_definitions(-DBUDDY_IN_MEM)
     target_link_directories(ycsb PUBLIC lib/new-metakv/src/CLHT)
     target_include_directories(ycsb PUBLIC lib/new-metakv/src)
     target_link_libraries(ycsb metakv ${TBB_LIBRARIES})

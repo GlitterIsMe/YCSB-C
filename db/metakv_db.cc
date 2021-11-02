@@ -10,7 +10,7 @@ namespace ycsb_metakv{
         options.cceh_file_size = 32UL * 1024 * 1024 * 1024;
         options.data_file_size = 128UL * 1024 * 1024 * 1024;
         db = MetaDB{};
-        db.Open(options, "/mnt/pmem/metakv");
+        db.Open(options, "/mnt/pmem1/metakv");
 
         cnt.store(0);
     }

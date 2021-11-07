@@ -113,6 +113,75 @@ int main(const int argc, const char *argv[]) {
   cout << props["dbname"] << '\t' << file_name << '\t' << num_threads << '\t';
   cout << total_ops / duration / 1000 << endl;
 
+  // perform transctions scan
+  // init prop
+  utils::Properties props2;
+  file_name.assign("../workloads/workload-scan");
+  std::ifstream input_scan("../workloads/workload-scan.spec");
+  props2.Load(input_scan);
+  props2.SetProperty("threadcount", props.GetProperty("thread_count"));
+  props2.SetProperty("dbname", props.GetProperty("dbname"));
+  props2.SetProperty("file_ratio", props.GetProperty("file_ratio"));
+  // init workload
+  ycsbc::CoreWorkload wl2;
+  wl2.Init(props2);
+  // perform transction
+    total_finished.store(0);
+    actual_ops.clear();
+    total_ops = stoi(props2[ycsbc::CoreWorkload::OPERATION_COUNT_PROPERTY]);
+    utils::Timer<double> timer2;
+    timer2.Start();
+    for (int i = 0; i < num_threads; ++i) {
+        actual_ops.emplace_back(async(launch::async,
+                                      DelegateClient, db, &wl2, total_ops / num_threads, false));
+    }
+    assert((int)actual_ops.size() == num_threads);
+
+    sum = 0;
+    for (auto &n : actual_ops) {
+        assert(n.valid());
+        sum += n.get();
+    }
+    double duration2 = timer2.End();
+    cout << "# Transaction throughput (KTPS)" << endl;
+    cout << props["dbname"] << '\t' << file_name << '\t' << num_threads << '\t';
+    cout << total_ops / duration2 / 1000 << endl;
+
+
+  // perform transctions delete
+// init prop
+    utils::Properties props3;
+    file_name.assign("../workloads/workload-delete");
+    std::ifstream input_scan2("../workloads/workload-delete.spec");
+    props3.Load(input_scan2);
+    props3.SetProperty("threadcount", props.GetProperty("thread_count"));
+    props3.SetProperty("dbname", props.GetProperty("dbname"));
+    props3.SetProperty("file_ratio", props.GetProperty("file_ratio"));
+    // init workload
+    ycsbc::CoreWorkload wl3;
+    wl3.Init(props3);
+    // perform transction
+    total_finished.store(0);
+    actual_ops.clear();
+    total_ops = stoi(props3[ycsbc::CoreWorkload::OPERATION_COUNT_PROPERTY]);
+    utils::Timer<double> timer3;
+    timer3.Start();
+    for (int i = 0; i < num_threads; ++i) {
+        actual_ops.emplace_back(async(launch::async,
+                                      DelegateClient, db, &wl3, total_ops / num_threads, false));
+    }
+    assert((int)actual_ops.size() == num_threads);
+
+    sum = 0;
+    for (auto &n : actual_ops) {
+        assert(n.valid());
+        sum += n.get();
+    }
+    double duration3 = timer3.End();
+    cout << "# Transaction throughput (KTPS)" << endl;
+    cout << props["dbname"] << '\t' << file_name << '\t' << num_threads << '\t';
+    cout << total_ops / duration3 / 1000 << endl;
+
   db->Close();
 }
 

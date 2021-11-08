@@ -3,9 +3,8 @@ project(ycsb)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 include(FindThreads)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(TBB REQUIRED tbb)
@@ -22,11 +21,11 @@ add_subdirectory(redis)
 #as some function name may conflict
 option(WITH_PMEM_ROCKSDB "support the pmem rocksdb" OFF)
 option(WITH_CCEH "support for CCEH hash table" OFF)
-option(WITH_UTREE "support for uTree" OFF)
+option(WITH_UTREE "support for uTree" ON)
 option(WITH_FASTFAIR "support for FASTFAIR" OFF)
 option(WITH_VIPER "support for Viper" OFF)
 option(WITH_HIKV "support for HiKV" OFF)
-option(WITH_METAKV "support for MetaKV" ON)
+option(WITH_METAKV "support for MetaKV" OFF)
 
 add_executable(ycsb "")
 target_sources(ycsb PUBLIC

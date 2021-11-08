@@ -16,6 +16,7 @@
 #include "core/client.h"
 #include "core/core_workload.h"
 #include "db/db_factory.h"
+#include "core/db.h"
 
 using namespace std;
 
@@ -24,6 +25,17 @@ bool StrStartWith(const char *str, const char *pre);
 string ParseCommandLine(int argc, const char *argv[], utils::Properties &props);
 
 std::atomic<uint64_t> total_finished;
+
+using OP = std::tuple<int, std::string, std::string>;
+std::vector<OP> trace_ops;
+std::vector<OP> trace_load1;
+std::vector<OP> trace_load2;
+
+const std::string rsync_trace_file("trace-rsync.out");
+const std::string tar_trace_file("trace-tar.out");
+const std::string find_trace_file("trace_find.out");
+
+bool with_read = true;
 
 int DelegateClient(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops,
     bool is_loading) {
@@ -34,7 +46,62 @@ int DelegateClient(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops,
   ycsbc::Client client(*db, *wl);
   int oks = 0;
   int count = 0;
-  for (int i = 0; i < num_ops; ++i) {
+  // load
+  auto run_trace = [&](std::vector<OP>& trace){
+      int count = 0;
+      for(auto op : trace) {
+          switch (std::get<0>(op)) {
+              case 1: {
+                  std::vector<ycsbc::DB::KVPair> value;
+                  value.emplace_back("", std::get<2>(op));
+                  db->Insert("", std::get<1>(op), value);
+                  break;
+              }
+              case 2: {
+                  std::vector<std::string> fields;
+                  std::vector<ycsbc::DB::KVPair> result;
+                  db->Read("", std::get<1>(op), &fields, result);
+                  break;
+              }
+              case 3: {
+                  db->Delete("", std::get<1>(op));
+                  break;
+              }
+              case 4: {
+                  std::vector<std::string> fields;
+                  std::vector<std::vector<ycsbc::DB::KVPair>> results;
+                  db->Scan("", std::get<1>(op), 0, &fields, results);
+                  break;
+              }
+              default:
+                  break;
+          }
+          count++;
+          if (count % 10000 == 0) {
+              fprintf(stderr, "...finished: %lu\r", total_finished.fetch_add(count, std::memory_order_acquire) + count);
+              fflush(stderr);
+              count = 0;
+          }
+      }
+  };
+
+  // run rsync
+  auto start = std::chrono::high_resolution_clock::now();
+  run_trace(trace_ops);
+  auto end = std::chrono::high_resolution_clock::now();
+  std::cout << "run rsync: " << (end - start).count() << "\n";
+  // run tar
+    auto start2 = std::chrono::high_resolution_clock::now();
+    run_trace(trace_load1);
+    auto end2 = std::chrono::high_resolution_clock::now();
+    std::cout << "run tar: " <<  (end2 - start2).count() << "\n";
+
+  // run find
+    auto start3 = std::chrono::high_resolution_clock::now();
+    run_trace(trace_load2);
+    auto end3 = std::chrono::high_resolution_clock::now();
+    std::cout << "run find: " << (end3 - start3).count() << "\n";
+  /*for (int i = 0; i < num_ops; ++i) {
     if (is_loading) {
       oks += client.DoInsert();
       count++;
@@ -47,7 +114,8 @@ int DelegateClient(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops,
           fflush(stderr);
           count = 0;
       }
-  }
+  }*/
+
   //db->Close();
   return oks;
 }
@@ -63,6 +131,34 @@ int main(const int argc, const char *argv[]) {
     cout << "Unknown database name " << props["dbname"] << endl;
     exit(0);
   }
+
+  auto process_file = [&](std::string fname, std::vector<OP>& trace){
+      std::ifstream stream;
+      stream.open(fname, std::ios::in);
+      std::string line;
+      while (getline(stream, line, '\n')) {
+          if (line[0] < '0' || line[0] > '9') continue;
+          int op = std::stoi(line.substr(0, line.find(',')));
+          if (op == 1) {
+              int first_comma = line.find(",");
+              int second_comma = line.rfind(",");
+              std::string key = line.substr(first_comma + 1, second_comma - first_comma - 1);
+              std::string value = line.substr(second_comma + 1, line.size() - second_comma - 1);
+              if (key.size() <= 8) continue;
+              trace.emplace_back(op, key, value);
+          } else {
+              int first_comma = line.find(',');
+              std::string key = line.substr(first_comma + 1, line.size() - first_comma - 1);
+              if (key.size() <= 8) continue;
+              trace.emplace_back(op, key, "");
+          }
+      }
+      printf("successful read %d entries\n", trace.size());
+  };
+
+  process_file(rsync_trace_file, trace_ops);
+  process_file(tar_trace_file, trace_load1);
+  process_file(find_trace_file, trace_load2);
 
   ycsbc::CoreWorkload wl;
   wl.Init(props);
@@ -90,6 +186,9 @@ int main(const int argc, const char *argv[]) {
   cout << "# Load throughput (KTPS)" << endl;
   cout << props["dbname"] << '\t' << file_name << '\t' << num_threads << '\t';
   cout << total_ops / duration1 / 1000 << endl;
+
+    db->Close();
+    return 0;
 
   // Peforms transactions
   total_finished.store(0);

@@ -23,3 +23,7 @@
 [submodule "lib/HybridHash"]
 	path = lib/HybridHash
 	url = git@github.com:minxinhao/HybridHash.git
+[submodule "kv/roart"]
+	path = kv/roart
+	url = https://github.com/GlitterIsMe/ROART.git
+	branch = developing

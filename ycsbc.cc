@@ -39,13 +39,16 @@ bool with_read = true;
 
 int DelegateClient(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops,
     bool is_loading) {
-  //db->Init();
+#ifdef USING_ROART
+  db->Init();
+#endif
 #ifdef USING_HybridHash
   ((ycsb_hybridhash::ycsbHybridHash*)db)->clht_init();
 #endif
   ycsbc::Client client(*db, *wl);
   int oks = 0;
   int count = 0;
+
   // load
   auto run_trace = [&](std::vector<OP>& trace){
       int count = 0;
@@ -86,22 +89,23 @@ int DelegateClient(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops,
   };
 
   // run rsync
-  auto start = std::chrono::high_resolution_clock::now();
+  /*auto start = std::chrono::high_resolution_clock::now();
   run_trace(trace_ops);
   auto end = std::chrono::high_resolution_clock::now();
-  std::cout << "run rsync: " << (end - start).count() << "\n";
+  std::cout << "run rsync: " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << "\n";
   // run tar
     auto start2 = std::chrono::high_resolution_clock::now();
     run_trace(trace_load1);
     auto end2 = std::chrono::high_resolution_clock::now();
-    std::cout << "run tar: " <<  (end2 - start2).count() << "\n";
+    std::cout << "run tar: " <<  std::chrono::duration_cast<std::chrono::microseconds>(end2 - start2).count() << "\n";
 
   // run find
     auto start3 = std::chrono::high_resolution_clock::now();
     run_trace(trace_load2);
     auto end3 = std::chrono::high_resolution_clock::now();
-    std::cout << "run find: " << (end3 - start3).count() << "\n";
-  /*for (int i = 0; i < num_ops; ++i) {
+    std::cout << "run find: " << std::chrono::duration_cast<std::chrono::microseconds>(end3 - start3).count() << "\n";
+*/
+  for (int i = 0; i < num_ops; ++i) {
     if (is_loading) {
       oks += client.DoInsert();
       count++;
@@ -114,7 +118,7 @@ int DelegateClient(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops,
           fflush(stderr);
           count = 0;
       }
-  }*/
+  }
 
   //db->Close();
   return oks;
@@ -126,7 +130,9 @@ int main(const int argc, const char *argv[]) {
   string file_name = ParseCommandLine(argc, argv, props);
 
   ycsbc::DB *db = ycsbc::DBFactory::CreateDB(props);
-  db->Init();
+#ifndef USING_ROART
+    db->Init();
+#endif
   if (!db) {
     cout << "Unknown database name " << props["dbname"] << endl;
     exit(0);
@@ -156,9 +162,9 @@ int main(const int argc, const char *argv[]) {
       printf("successful read %d entries\n", trace.size());
   };
 
-  process_file(rsync_trace_file, trace_ops);
-  process_file(tar_trace_file, trace_load1);
-  process_file(find_trace_file, trace_load2);
+  //process_file(rsync_trace_file, trace_ops);
+  //process_file(tar_trace_file, trace_load1);
+  //process_file(find_trace_file, trace_load2);
 
   ycsbc::CoreWorkload wl;
   wl.Init(props);
@@ -187,8 +193,8 @@ int main(const int argc, const char *argv[]) {
   cout << props["dbname"] << '\t' << file_name << '\t' << num_threads << '\t';
   cout << total_ops / duration1 / 1000 << endl;
 
-    db->Close();
-    return 0;
+    //db->Close();
+    //return 0;
 
   // Peforms transactions
   total_finished.store(0);
@@ -211,6 +217,9 @@ int main(const int argc, const char *argv[]) {
   cout << "# Transaction throughput (KTPS)" << endl;
   cout << props["dbname"] << '\t' << file_name << '\t' << num_threads << '\t';
   cout << total_ops / duration / 1000 << endl;
+
+    db->Close();
+    return 0;
 
   // perform transctions scan
   // init prop

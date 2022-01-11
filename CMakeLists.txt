@@ -3,13 +3,16 @@ project(ycsb)
 
 set(CMAKE_CXX_STANDARD 17)
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wreturn-type")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wreturn-type")
 include(FindThreads)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(TBB REQUIRED tbb)
 pkg_check_modules(LIBPMEM REQUIRED libpmem)
 pkg_check_modules(LIBPMEMOBJ REQUIRED libpmemobj)
+
+#pkg_check_modules(BoostSystem REQUIRED boost_system)
+#pkg_check_modules(BoostThread REQUIRED boost_thread)
 
 include_directories(${LIBPMEM_INCLUDE_DIRS} ${LIBPMEMOBJ_INCLUDE_DIRS})
 link_libraries(${LIBPMEM_LIBRARIES})
@@ -21,11 +24,13 @@ add_subdirectory(redis)
 #as some function name may conflict
 option(WITH_PMEM_ROCKSDB "support the pmem rocksdb" OFF)
 option(WITH_CCEH "support for CCEH hash table" OFF)
-option(WITH_UTREE "support for uTree" ON)
+option(WITH_UTREE "support for uTree" OFF)
 option(WITH_FASTFAIR "support for FASTFAIR" OFF)
 option(WITH_VIPER "support for Viper" OFF)
 option(WITH_HIKV "support for HiKV" OFF)
-option(WITH_METAKV "support for MetaKV" OFF)
+option(WITH_METAKV "support for MetaKV" ON)
+option(WITH_TLHASH "support for TLhash" OFF)
+option(WITH_ROART "support for ROART" OFF)
 
 add_executable(ycsb "")
 target_sources(ycsb PUBLIC
@@ -73,8 +78,8 @@ target_sources(ycsb PUBLIC
 
 if (WITH_PMEM_ROCKSDB)
     message("Define pmem rocksdb")
-    add_definitions(-DWITH_DCPMM)
-    add_definitions(-DON_DCPMM)
+    #add_definitions(-DWITH_DCPMM)
+    #add_definitions(-DON_DCPMM)
     add_definitions(-DUSING_PMEM_ROCKSDB)
     add_subdirectory(lib/pmem-rocksdb)
     target_include_directories(ycsb PUBLIC lib/pmem-rocksdb/include)
@@ -99,12 +104,6 @@ endif ()
 
 if (WITH_UTREE)
     message("Define utree")
-    option(WITH_FASTFAIR "using fastfair or utree" OFF)
-    if (WITH_FASTFAIR)
-        add_definitions(-DFASTFAIR)
-    else()
-        add_definitions(-DUTREE)
-    endif ()
     add_definitions(-DUSING_UTREE)
     add_definitions(-DUSE_PMDK)
     add_subdirectory(lib/utree)
@@ -154,6 +153,32 @@ if (WITH_METAKV)
     target_include_directories(ycsb PUBLIC lib/new-metakv/src)
     target_link_libraries(ycsb metakv ${TBB_LIBRARIES})
 endif()
+
+if (WITH_ROART)
+    message("Define ROART")
+    add_definitions(-DUSING_ROART)
+    #add_definitions(-ROART)
+    add_definitions(-DCLWB)
+    add_definitions(-DVARIABLE_LENGTH)
+    add_definitions(-DUSE_PMDK)
+    add_definitions(-DACMA) # for fastfair and skiplist with dcmm
+    add_definitions(-DFF_GC) # ff_gc
+    add_definitions(-DRECLAIM_MEMORY)
+    add_definitions(-DKEY_INLINE)
+    add_definitions(-DARTPMDK)
+    add_definitions(-DINSTANT_RESTART)
+
+    add_definitions(-DLEAF_ARRAY)
+    add_definitions(-DFIND_FIRST)
+    add_definitions(-DTRANSACTIONAL)
+    target_sources(ycsb PUBLIC
+            "db/roart_db.cc"
+            "db/roart_db.h"
+            )
+    add_subdirectory(kv/roart)
+    target_include_directories(ycsb PUBLIC kv/roart/ART kv/roart/nvm_mgr kv/roart/benchmark)
+    target_link_libraries(ycsb Indexes)
+endif ()
 
 target_include_directories(ycsb PUBLIC .)
 target_link_libraries(ycsb ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES}  hiredis)

@@ -14,7 +14,7 @@ namespace utree_db{
     }
 
     const std::string LOG_PATH("/mnt/pmem/log_pool");
-    const uint64_t LOG_SIZE = 60 * 1024UL * 1024UL * 1024UL;
+    const uint64_t LOG_SIZE = 40 * 1024UL * 1024UL * 1024UL;
     const std::string UTREE_PATH("/mnt/pmem/utree_pool");
     const uint64_t UTREE_SIZE = 40 * 1024UL * 1024UL * 1024UL;
 

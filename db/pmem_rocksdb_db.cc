@@ -21,14 +21,14 @@ namespace ycsb_pmem_rocksdb{
     void PmemRocksDB::Init() {
         rocksdb::Options options;
 
-        options.max_background_jobs = 32;
+        options.max_background_jobs = 16;
 
         options.create_if_missing = true;
-        options.dcpmm_kvs_enable = true;
-        options.dcpmm_kvs_mmapped_file_fullpath = PMEM_PATH;
-        options.dcpmm_kvs_mmapped_file_size = PMEM_SIZE;
-        options.recycle_dcpmm_sst = true;
-        options.env = rocksdb::NewDCPMMEnv(rocksdb::DCPMMEnvOptions());
+        //options.dcpmm_kvs_enable = false;
+        //options.dcpmm_kvs_mmapped_file_fullpath = PMEM_PATH;
+        //options.dcpmm_kvs_mmapped_file_size = PMEM_SIZE;
+        //options.recycle_dcpmm_sst = true;
+        //options.env = rocksdb::NewDCPMMEnv(rocksdb::DCPMMEnvOptions());
 
         rocksdb::Status s = rocksdb::DB::Open(options, DB_NAME, &db_);
         if (!s.ok()) {
@@ -50,6 +50,7 @@ namespace ycsb_pmem_rocksdb{
             whole_value.append(item.first + item.second);
         }
         rocksdb::WriteOptions options;
+        printf("key size : %lu, value size: %lu\n", whole_key.size(), whole_value.size());
         rocksdb::Status s = db_->Put(options, rocksdb::Slice(whole_key), rocksdb::Slice(whole_value));
         if (s.ok()) {
             return DB::kOK;
@@ -80,12 +81,17 @@ namespace ycsb_pmem_rocksdb{
         return DB::kOK;
     }
 
+    bool isInDirectory(std::string dir_key, std::string key) {
+        return dir_key.substr(0, 8) == key.substr(0, 8);
+    }
+
     int PmemRocksDB::Scan(const std::string &table, const std::string &key, int record_count,
                           const std::vector<std::string> *fields, std::vector<std::vector<KVPair>> &result) {
         rocksdb::Iterator *iter = db_->NewIterator(rocksdb::ReadOptions());
+        std::string whole_key = table + key;
         std::vector<std::string> raw_values;
         iter->Seek(rocksdb::Slice(table + key));
-        for(int i = 0; i < record_count && iter->Valid(); i++, iter->Next()) {
+        for(int i = 0; isInDirectory(whole_key, iter->key().ToString()) && iter->Valid(); i++, iter->Next()) {
             raw_values.push_back(iter->value().ToString());
         }
         return DB::kOK;

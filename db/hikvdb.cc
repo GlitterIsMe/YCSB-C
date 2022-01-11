@@ -13,7 +13,7 @@ namespace hikvdb {
             .store_size = 1024 * 1024 * 1024,
             .shard_size = 625000 * 16 * 4,
             .shard_num = 256,
-            .message_queue_shard_num = 16,
+            .message_queue_shard_num = 1,
             .log_path_ = "/mnt/pmem/hikv/",
             .log_size_ = 60UL * 1024 * 1024 * 1024,
             .cceh_path_ = "/mnt/pmem/hikv/",
@@ -47,7 +47,7 @@ namespace hikvdb {
         open_hikv::Slice value;
         open_hikv::ErrorCode e = hikv_->Get(whole_key, &value);
         if (e == open_hikv::ErrorCode::kNotFound) {
-            printf("not found\n");
+            //printf("not found\n");
             return kErrorNoData;
         } else {
             return kOK;
@@ -63,7 +63,8 @@ namespace hikvdb {
     int HiKVDB::Scan(const std::string &table, const std::string &key, int record_count,
                      const std::vector<std::string> *fields, std::vector<std::vector<KVPair>> &result) {
         std::string whole_key = table + key;
-        std::string prefix = whole_key.substr(0, whole_key.find('-') + 1);
+        //std::string prefix = whole_key.substr(0, whole_key.find('-') + 1);
+        std::string prefix = whole_key.substr(0, 8);
         std::vector<KVPair> res;
         hikv_->Scan(prefix, [&](const open_hikv::Slice& k, const open_hikv::Slice& v){
             if (k.ToString().find(prefix) != std::string::npos){

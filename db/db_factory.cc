@@ -39,6 +39,10 @@
 #include "db/metakv_db.h"
 #endif
 
+#ifdef USING_ROART
+#include "db/roart_db.h"
+#endif
+
 using namespace std;
 using ycsbc::DB;
 using ycsbc::DBFactory;
@@ -91,6 +95,11 @@ DB* DBFactory::CreateDB(utils::Properties &props) {
 #ifdef USING_HybridHash
       } else if (props["dbname"] == "hybridhash"){
       return new ycsb_hybridhash::ycsbHybridHash;
+#endif
+
+#ifdef USING_ROART
+      } else if (props["dbname"] == "roart"){
+      return new roart_db::RoartDB;
 #endif
 
   }

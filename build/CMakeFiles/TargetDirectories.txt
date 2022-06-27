@@ -1,9 +1,0 @@
-/home/mxh/YCSB-C/build/CMakeFiles/rebuild_cache.dir
-/home/mxh/YCSB-C/build/CMakeFiles/ycsb.dir
-/home/mxh/YCSB-C/build/CMakeFiles/edit_cache.dir
-/home/mxh/YCSB-C/build/redis/CMakeFiles/rebuild_cache.dir
-/home/mxh/YCSB-C/build/redis/CMakeFiles/hiredis.dir
-/home/mxh/YCSB-C/build/redis/CMakeFiles/edit_cache.dir
-/home/mxh/YCSB-C/build/lib/new-metakv/CMakeFiles/rebuild_cache.dir
-/home/mxh/YCSB-C/build/lib/new-metakv/CMakeFiles/metakv.dir
-/home/mxh/YCSB-C/build/lib/new-metakv/CMakeFiles/edit_cache.dir

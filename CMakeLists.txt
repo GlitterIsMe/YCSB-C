@@ -14,7 +14,7 @@ pkg_check_modules(LIBPMEMOBJ REQUIRED libpmemobj)
 include_directories(${LIBPMEM_INCLUDE_DIRS} ${LIBPMEMOBJ_INCLUDE_DIRS})
 link_libraries(${LIBPMEM_LIBRARIES})
 
-add_subdirectory(redis)
+#add_subdirectory(redis)
 
 # CAUTION: only on DB can be set to ON when building ycsb
 # TODO: Support all DB in the same time (some function names conflict currently)
@@ -51,8 +51,8 @@ target_sources(ycsb PUBLIC
         "db/hashtable_db.cc"
         "db/hashtable_db.h"
         "db/lock_stl_db.h"
-        "db/redis_db.cc"
-        "db/redis_db.h"
+        #"db/redis_db.cc"
+        #"db/redis_db.h"
         "db/tbb_rand_db.h"
         "db/tbb_scan_db.h"
         #"db/log_db.cc"
@@ -154,4 +154,6 @@ if (WITH_METAKV)
 endif()
 
 target_include_directories(ycsb PUBLIC .)
-target_link_libraries(ycsb ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES}  hiredis)
+target_link_libraries(ycsb ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES}
+        #hiredis
+        )

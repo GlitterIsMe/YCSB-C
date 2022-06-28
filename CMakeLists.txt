@@ -17,7 +17,7 @@ pkg_check_modules(LIBPMEMOBJ REQUIRED libpmemobj)
 include_directories(${LIBPMEM_INCLUDE_DIRS} ${LIBPMEMOBJ_INCLUDE_DIRS})
 link_libraries(${LIBPMEM_LIBRARIES})
 
-add_subdirectory(redis)
+#add_subdirectory(redis)
 
 # CAUTION: only on DB can be set to ON when building ycsb
 # TODO: Support all DB in the same time (some function names conflict currently)
@@ -29,7 +29,6 @@ option(WITH_FASTFAIR "support for FASTFAIR" OFF)
 option(WITH_VIPER "support for Viper" OFF)
 option(WITH_HIKV "support for HiKV" OFF)
 option(WITH_METAKV "support for MetaKV" ON)
-option(WITH_TLHASH "support for TLhash" OFF)
 option(WITH_ROART "support for ROART" OFF)
 
 add_executable(ycsb "")
@@ -181,4 +180,4 @@ if (WITH_ROART)
 endif ()
 
 target_include_directories(ycsb PUBLIC .)
-target_link_libraries(ycsb ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES}  hiredis)
+target_link_libraries(ycsb ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES})

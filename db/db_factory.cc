@@ -11,7 +11,7 @@
 #include <string>
 #include "db/basic_db.h"
 #include "db/lock_stl_db.h"
-#include "db/redis_db.h"
+//#include "db/redis_db.h"
 #include "db/tbb_rand_db.h"
 #include "db/tbb_scan_db.h"
 //#include "db/log_db.h.back"
@@ -90,11 +90,6 @@ DB* DBFactory::CreateDB(utils::Properties &props) {
 #ifdef USING_METAKV
       } else if (props["dbname"] == "metakv"){
       return new ycsb_metakv::ycsbMetaKV;
-#endif
-
-#ifdef USING_HybridHash
-      } else if (props["dbname"] == "hybridhash"){
-      return new ycsb_hybridhash::ycsbHybridHash;
 #endif
 
 #ifdef USING_ROART

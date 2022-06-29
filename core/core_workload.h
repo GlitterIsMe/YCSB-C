@@ -215,15 +215,13 @@ inline std::string CoreWorkload::BuildKeyName(uint64_t key_num) {
   if (!ordered_inserts_) {
     key_num = utils::Hash(key_num);
   }
-
-  int pos = key_num % prefix_num;
-  /*for ( ; ; pos = (pos + 1) % prefix_num) {
-      if (prefix_count[pos] > 0) {
-          prefix_count[pos]--;
-          break;
-      }
-  }*/
-  std::string prefix_str = std::to_string(pos);
+  uint64_t pinode = key_num % prefix_num;
+  //printf("%s pinode = %llu\n", __FUNCTION__ , pinode);
+  char raw_pinode[8];
+  memcpy(raw_pinode, reinterpret_cast<char*>(&pinode), 8);
+  std::string fname = std::to_string(key_num);
+  return std::string(raw_pinode, 8).append(fname);
+  /*std::string prefix_str = std::to_string(pos);
   int prefix_zero = zero_padding_ - prefix_str.length();
   prefix_zero = std::max(0, prefix_zero);
 
@@ -231,11 +229,12 @@ inline std::string CoreWorkload::BuildKeyName(uint64_t key_num) {
   int zeros = zero_padding_ - key_num_str.length();
   zeros = std::max(0, zeros);
   //return std::string("user").append(zeros, '0').append(key_num_str);
-  return std::string("user").append(prefix_zero, '0').append(prefix_str).append("-").append(zeros, '0').append(key_num_str);
+  return std::string("user").append(prefix_zero, '0').append(prefix_str).append("-").append(zeros, '0').append(key_num_str);*/
 }
 
 inline std::string CoreWorkload::NextFieldName() {
   return std::string("field").append(std::to_string(field_chooser_->Next()));
+  //return std::to_string(field_chooser_->Next());
 }
   
 } // ycsbc

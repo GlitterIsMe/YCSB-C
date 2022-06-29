@@ -8,9 +8,9 @@ namespace ycsb_metakv{
     void ycsbMetaKV::Init() {
         Options options;
         options.cceh_file_size = 32UL * 1024 * 1024 * 1024;
-        options.data_file_size = 64UL * 1024 * 1024 * 1024;
+        options.data_file_size = 128UL * 1024 * 1024 * 1024;
         db = MetaDB{};
-        db.Open(options, "/mnt/pmem/metakv");
+        db.Open(options, "/mnt/pmem1/metakv");
 
         cnt.store(0);
     }
@@ -21,14 +21,18 @@ namespace ycsb_metakv{
 
     int ycsbMetaKV::Insert(const std::string &table, const std::string &key, std::vector<KVPair> &values) {
         assert(key.size() > 8);
-        std::string whole_key(table + key);
+        //std::string whole_key(table + key);
+        //std::string whole_key(key);
         std::string whole_value;
+        //char raw[8];
+        //memcpy(raw, key.c_str(), 8);
+        //printf("%s, key [%llu + %s]\n", __FUNCTION__, *reinterpret_cast<uint64_t*>(raw), key.substr(8, whole_key.size() - 8).c_str());
         for (auto item : values) {
-            whole_value.append(item.first + item.second);
+            //whole_value.append(item.first + item.second);
+            whole_value.append(item.second);
         }
-        printf("key size %lu, value size %lu\n", whole_key.size(), whole_value.size());
-        ycsbKey internal_key(whole_key.substr(0, 8),
-                    whole_key.substr(8, whole_key.size() - 8));
+        //printf("key size %lu, value size %lu\n", whole_key.size(), whole_value.size());
+        ycsbKey internal_key(key.substr(0, 8), key.substr(8, key.size() - 8));
         ycsbValue internal_value(whole_value);
         //printf("insert %s\n", (table + key).c_str());
         bool res = db.Put(internal_key, internal_value);
@@ -39,10 +43,10 @@ namespace ycsb_metakv{
     int ycsbMetaKV::Read(const std::string &table, const std::string &key, const std::vector<std::string> *fields,
                          std::vector<KVPair> &result) {
         assert(key.size() > 8);
-        std::string whole_key(table + key);
+        //std::string whole_key(table + key);
         ycsbValue value;
-        std::string prefix = whole_key.substr(0, 8);
-        std::string fname = whole_key.substr(8, whole_key.size() - 8);
+        std::string prefix = key.substr(0, 8);
+        std::string fname = key.substr(8, key.size() - 8);
         // printf("prefix:%s fname:%s\n",prefix.c_str(),fname.c_str());
         ycsbKey internal_key(prefix,fname);
         bool res = db.Get(internal_key, value);
@@ -55,9 +59,8 @@ namespace ycsb_metakv{
     }
 
     int ycsbMetaKV::Delete(const std::string &table, const std::string &key) {
-        std::string whole_key(table + key);
-        ycsbKey internal_key(whole_key.substr(0, 8),
-                             whole_key.substr(8, whole_key.size() - 8));
+        //std::string whole_key(table + key);
+        ycsbKey internal_key(key.substr(0, 8), key.substr(8, key.size() - 8));
         bool res = db.Delete(internal_key);
         if (!res) {
         //     return DB::kOK;
@@ -74,8 +77,8 @@ namespace ycsb_metakv{
 
     int ycsbMetaKV::Scan(const std::string &table, const std::string &key, int record_count,
                          const std::vector<std::string> *fields, std::vector<std::vector<KVPair>> &result) {
-        std::string whole_key(table + key);
-        std::string tmp = whole_key.substr(0, 8);
+        //std::string whole_key(table + key);
+        std::string tmp = key.substr(0, 8);
         Slice prefix = Slice(tmp);
         // printf("whole_key:%s\n prefix:%s\n",whole_key.c_str(),whole_key.substr(0,whole_key.find('-')).c_str());
         std::vector<LogEntryRecord> records;

@@ -1,13 +1,8 @@
 //
-// Created by 張藝文 on 2021/11/9.
-//
-
-#include "roart_db.h"
-
-//
 // Created by zzyyyww on 2021/8/26.
 //
 
+#include <filesystem>
 #include "roart_db.h"
 
 namespace roart_db{
@@ -19,16 +14,14 @@ namespace roart_db{
         return *size;
     }
 
-    const std::string LOG_PATH("/mnt/pmem/roart/log");
-    const uint64_t LOG_SIZE = 40 * 1024UL * 1024UL * 1024UL;
-    const std::string UTREE_PATH("/mnt/pmem/roart/log");
-    const uint64_t UTREE_SIZE = 40 * 1024UL * 1024UL * 1024UL;
-
-    size_t mapped_len;
-    int is_pmem;
+    const std::string ROART_PATH("/mnt/pmem1/roart");
 
     void RoartDB::Init() {
         if (!inited_) {
+            if (std::filesystem::exists(ROART_PATH)) {
+                std::filesystem::remove_all(ROART_PATH);
+            }
+            std::filesystem::create_directory(ROART_PATH);
             db_ = new PART_ns::Tree();
             inited_ = true;
         } else {
@@ -41,12 +34,12 @@ namespace roart_db{
     }
 
     int RoartDB::Insert(const std::string &table, const std::string &key, std::vector<KVPair> &values) {
-        std::string whole_key = table + key;
+        //std::string whole_key = table + key;
         std::string value;
         for (auto item : values) {
-            value.append(item.first + item.second);
+            value.append(item.second);
         }
-        bool res = db_->Put(whole_key, value);
+        bool res = db_->Put(key, value);
         if (res) {
             {
                 //std::string check;
@@ -63,9 +56,9 @@ namespace roart_db{
 
     int RoartDB::Read(const std::string &table, const std::string &key, const std::vector<std::string> *fields,
                       std::vector<KVPair> &result) {
-        std::string whole_key = table + key;
+        //std::string whole_key = table + key;
         std::string value;
-        bool res = db_->Get(whole_key, &value);
+        bool res = db_->Get(key, &value);
         if (res) {
             return 1;
         } else {
@@ -75,9 +68,9 @@ namespace roart_db{
 
     int RoartDB::Scan(const std::string &table, const std::string &key, int record_count,
                       const std::vector<std::string> *fields, std::vector<std::vector<KVPair>> &result) {
-        std::string whole_key = table + key;
+        //std::string whole_key = table + key;
         std::vector<KVPair> res;
-        db_->Scan(whole_key, res);
+        db_->Scan(key, res);
         return DB::kOK;
     }
 
@@ -86,11 +79,11 @@ namespace roart_db{
     }
 
     int RoartDB::Delete(const std::string &table, const std::string &key) {
-        std::string whole_key = table + key;
+        //std::string whole_key = table + key;
         std::string result;
-        bool res = db_->Get(whole_key, &result);
+        bool res = db_->Get(key, &result);
         if (res) {
-            db_->Delete(whole_key);
+            db_->Delete(key);
         }
         return DB::kOK;
     }

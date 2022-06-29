@@ -18,6 +18,10 @@
 #include "db/db_factory.h"
 #include "core/db.h"
 
+#ifdef USING_ROART
+#include "kv/roart/nvm_mgr/threadinfo.h"
+#endif
+
 using namespace std;
 
 void UsageMessage(const char *command);
@@ -26,11 +30,16 @@ string ParseCommandLine(int argc, const char *argv[], utils::Properties &props);
 
 std::atomic<uint64_t> total_finished;
 
+std::string db_name;
+
 int DelegateClient(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops,
     bool is_loading) {
-#ifdef USING_ROART
-  db->Init();
-#endif
+//#ifdef USING_ROART
+  //db->Init();
+    if (db_name == "roart") {
+        NVMMgr_ns::register_threadinfo();
+    }
+//#endif
   ycsbc::Client client(*db, *wl);
   int oks = 0;
   int count = 0;
@@ -60,9 +69,9 @@ int main(const int argc, const char *argv[]) {
   string file_name = ParseCommandLine(argc, argv, props);
 
   ycsbc::DB *db = ycsbc::DBFactory::CreateDB(props);
-#ifndef USING_ROART
+//#ifndef USING_ROART
     db->Init();
-#endif
+//#endif
   if (!db) {
     cout << "Unknown database name " << props["dbname"] << endl;
     exit(0);
@@ -138,6 +147,8 @@ string ParseCommandLine(int argc, const char *argv[], utils::Properties &props) 
       argindex++;
     } else if (strcmp(argv[argindex], "-db") == 0) {
       argindex++;
+        db_name = std::string(argv[argindex]);
+        //printf("%s cur db name %s\n", __FUNCTION__ , db_name.c_str());
       if (argindex >= argc) {
         UsageMessage(argv[0]);
         exit(0);

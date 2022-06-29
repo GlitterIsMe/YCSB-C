@@ -1,22 +1,27 @@
 //
 // Created by zzyyyww on 2021/9/4.
 //
-
+#include <filesystem>
 #include "lib/new-metakv/src/Slice.h"
 #include "hikvdb.h"
 #include "pmem_impl/config.h"
 
 namespace hikvdb {
+    const std::string PATH("/mnt/pmem1/hikv/");
     void HiKVDB::Init() {
+        if (std::filesystem::exists(PATH)) {
+            std::filesystem::remove_all(PATH);
+        }
+        std::filesystem::create_directory(PATH);
         open_hikv::HiKVConfig config {
-            .pm_path_ = "/mnt/pmem/hikv/",
+            .pm_path_ = PATH,
             .store_size = 1024 * 1024 * 1024,
             .shard_size = 625000 * 16 * 4,
             .shard_num = 256,
             .message_queue_shard_num = 1,
-            .log_path_ = "/mnt/pmem/hikv/",
+            .log_path_ = PATH,
             .log_size_ = 60UL * 1024 * 1024 * 1024,
-            .cceh_path_ = "/mnt/pmem/hikv/",
+            .cceh_path_ = PATH,
             .cceh_size_ = 40UL * 1024 * 1024 * 1024,
         };
         /*open_hikv::HiKVConfig config {
@@ -32,20 +37,18 @@ namespace hikvdb {
     void HiKVDB::Close() {}
 
     int HiKVDB::Insert(const std::string &table, const std::string &key, std::vector<KVPair> &values) {
-        std::string whole_key = table + key;
         std::string value;
         for (auto item : values) {
-            value.append(item.first + item.second);
+            value.append(item.second);
         }
-        hikv_->Set(whole_key, value);
+        hikv_->Set(key, value);
         return DB::kOK;
     }
 
     int HiKVDB::Read(const std::string &table, const std::string &key, const std::vector<std::string> *fields,
                      std::vector<KVPair> &result) {
-        std::string whole_key = table + key;
         open_hikv::Slice value;
-        open_hikv::ErrorCode e = hikv_->Get(whole_key, &value);
+        open_hikv::ErrorCode e = hikv_->Get(key, &value);
         if (e == open_hikv::ErrorCode::kNotFound) {
             //printf("not found\n");
             return kErrorNoData;
@@ -55,16 +58,15 @@ namespace hikvdb {
     }
 
     int HiKVDB::Delete(const std::string &table, const std::string &key) {
-        std::string whole_key = table + key;
-        hikv_->Del(whole_key);
+        hikv_->Del(key);
         return kOK;
     }
 
     int HiKVDB::Scan(const std::string &table, const std::string &key, int record_count,
                      const std::vector<std::string> *fields, std::vector<std::vector<KVPair>> &result) {
-        std::string whole_key = table + key;
+        //std::string whole_key = table + key;
         //std::string prefix = whole_key.substr(0, whole_key.find('-') + 1);
-        std::string prefix = whole_key.substr(0, 8);
+        std::string prefix = key.substr(0, 8);
         std::vector<KVPair> res;
         hikv_->Scan(prefix, [&](const open_hikv::Slice& k, const open_hikv::Slice& v){
             if (k.ToString().find(prefix) != std::string::npos){

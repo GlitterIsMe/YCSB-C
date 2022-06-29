@@ -3,8 +3,12 @@ project(ycsb)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wreturn-type")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wreturn-type")
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wreturn-type")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wreturn-type")
+endif ()
+
 include(FindThreads)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(TBB REQUIRED tbb)
@@ -22,14 +26,14 @@ link_libraries(${LIBPMEM_LIBRARIES})
 # CAUTION: only on DB can be set to ON when building ycsb
 # TODO: Support all DB in the same time (some function names conflict currently)
 #as some function name may conflict
-option(WITH_PMEM_ROCKSDB "support the pmem rocksdb" OFF)
+option(WITH_PMEM_ROCKSDB "support the pmem rocksdb" ON)
 option(WITH_CCEH "support for CCEH hash table" OFF)
-option(WITH_UTREE "support for uTree" OFF)
+option(WITH_UTREE "support for uTree" ON)
 option(WITH_FASTFAIR "support for FASTFAIR" OFF)
 option(WITH_VIPER "support for Viper" OFF)
-option(WITH_HIKV "support for HiKV" OFF)
-option(WITH_METAKV "support for MetaKV" ON)
-option(WITH_ROART "support for ROART" OFF)
+option(WITH_HIKV "support for HiKV" ON)
+option(WITH_METAKV "support for MetaKV" OFF)
+option(WITH_ROART "support for ROART" ON)
 
 add_executable(ycsb "")
 target_sources(ycsb PUBLIC
@@ -55,8 +59,8 @@ target_sources(ycsb PUBLIC
         "db/hashtable_db.cc"
         "db/hashtable_db.h"
         "db/lock_stl_db.h"
-        "db/redis_db.cc"
-        "db/redis_db.h"
+        #"db/redis_db.cc"
+        #"db/redis_db.h"
         "db/tbb_rand_db.h"
         "db/tbb_scan_db.h"
         #"db/log_db.cc"
@@ -77,8 +81,8 @@ target_sources(ycsb PUBLIC
 
 if (WITH_PMEM_ROCKSDB)
     message("Define pmem rocksdb")
-    #add_definitions(-DWITH_DCPMM)
-    #add_definitions(-DON_DCPMM)
+    add_definitions(-DWITH_DCPMM)
+    add_definitions(-DON_DCPMM)
     add_definitions(-DUSING_PMEM_ROCKSDB)
     add_subdirectory(lib/pmem-rocksdb)
     target_include_directories(ycsb PUBLIC lib/pmem-rocksdb/include)
@@ -150,7 +154,7 @@ if (WITH_METAKV)
     add_definitions(-DBUDDY_IN_MEM)
     target_link_directories(ycsb PUBLIC lib/new-metakv/src/CLHT)
     target_include_directories(ycsb PUBLIC lib/new-metakv/src)
-    target_link_libraries(ycsb metakv ${TBB_LIBRARIES})
+    target_link_libraries(ycsb metakv ${TBB_LIBRARIES} stdc++fs)
 endif()
 
 if (WITH_ROART)

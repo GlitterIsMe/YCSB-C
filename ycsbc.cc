@@ -60,6 +60,9 @@ int DelegateClient(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops,
   }
 
   //db->Close();
+    if (db_name == "roart") {
+        NVMMgr_ns::unregister_threadinfo();
+    }
   return oks;
 }
 

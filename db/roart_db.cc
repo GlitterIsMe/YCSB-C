@@ -60,9 +60,9 @@ namespace roart_db{
         std::string value;
         bool res = db_->Get(key, &value);
         if (res) {
-            return 1;
+            return DB::kOK;
         } else {
-            return 0;
+            return DB::kErrorNoData;
         }
     }
 

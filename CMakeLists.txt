@@ -23,17 +23,17 @@ link_libraries(${LIBPMEM_LIBRARIES})
 
 #add_subdirectory(redis)
 
-# CAUTION: only on DB can be set to ON when building ycsb
+# CAUTION: only pmem-rocksdb/utree/hikv/roart can be synchronously set to ON when building ycsb
 # TODO: Support all DB in the same time (some function names conflict currently)
 #as some function name may conflict
-option(WITH_PMEM_ROCKSDB "support the pmem rocksdb" ON)
-option(WITH_CCEH "support for CCEH hash table" OFF)
-option(WITH_UTREE "support for uTree" ON)
-option(WITH_FASTFAIR "support for FASTFAIR" OFF)
 option(WITH_VIPER "support for Viper" OFF)
+option(WITH_CCEH "support for CCEH hash table" OFF)
+option(WITH_FASTFAIR "support for FASTFAIR" OFF)
+option(WITH_PMEM_ROCKSDB "support the pmem rocksdb" ON)
+option(WITH_UTREE "support for uTree" OFF)
 option(WITH_HIKV "support for HiKV" ON)
+option(WITH_ROART "support for ROART" OFF)
 option(WITH_METAKV "support for MetaKV" OFF)
-option(WITH_ROART "support for ROART" ON)
 
 add_executable(ycsb "")
 target_sources(ycsb PUBLIC

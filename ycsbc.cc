@@ -34,12 +34,11 @@ std::string db_name;
 
 int DelegateClient(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops,
     bool is_loading) {
-//#ifdef USING_ROART
-  //db->Init();
+#ifdef USING_ROART
     if (db_name == "roart") {
         NVMMgr_ns::register_threadinfo();
     }
-//#endif
+#endif
   ycsbc::Client client(*db, *wl);
   int oks = 0;
   int count = 0;
@@ -58,11 +57,11 @@ int DelegateClient(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops,
           count = 0;
       }
   }
-
-  //db->Close();
+#ifdef USING_ROART
     if (db_name == "roart") {
         NVMMgr_ns::unregister_threadinfo();
     }
+#endif
   return oks;
 }
 

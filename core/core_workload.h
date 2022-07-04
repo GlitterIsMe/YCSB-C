@@ -215,7 +215,7 @@ inline std::string CoreWorkload::BuildKeyName(uint64_t key_num) {
   if (!ordered_inserts_) {
     key_num = utils::Hash(key_num);
   }
-  uint64_t pinode = key_num % prefix_num;
+  uint64_t pinode = key_num % prefix_num + 1;
   //printf("%s pinode = %llu\n", __FUNCTION__ , pinode);
   char raw_pinode[8];
   memcpy(raw_pinode, reinterpret_cast<char*>(&pinode), 8);

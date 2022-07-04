@@ -27,7 +27,7 @@ namespace ycsb_pmem_rocksdb{
         std::filesystem::create_directory(DB_NAME);
         rocksdb::Options options;
 
-        options.max_background_jobs = 1;
+        options.max_background_jobs = 16;
 
         options.create_if_missing = true;
         options.dcpmm_kvs_enable = false;

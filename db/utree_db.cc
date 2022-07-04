@@ -16,7 +16,7 @@ namespace utree_db{
 
     const std::string UTREE_PATH("/mnt/pmem1/utree");
     const std::string LOG_PATH = UTREE_PATH + "/log";
-    const uint64_t LOG_SIZE = 40 * 1024UL * 1024UL * 1024UL;
+    const uint64_t LOG_SIZE = 32 * 1024UL * 1024UL * 1024UL;
 
     size_t mapped_len;
     int is_pmem;

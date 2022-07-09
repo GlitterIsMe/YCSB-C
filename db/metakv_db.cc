@@ -3,6 +3,7 @@
 //
 
 #include "metakv_db.h"
+#include "lib/latency_counter.h"
 
 namespace ycsb_metakv{
     void ycsbMetaKV::Init() {
@@ -43,6 +44,7 @@ namespace ycsb_metakv{
     int ycsbMetaKV::Read(const std::string &table, const std::string &key, const std::vector<std::string> *fields,
                          std::vector<KVPair> &result) {
         assert(key.size() > 8);
+        //START
         //std::string whole_key(table + key);
         ycsbValue value;
         std::string prefix = key.substr(0, 8);
@@ -50,10 +52,12 @@ namespace ycsb_metakv{
         // printf("prefix:%s fname:%s\n",prefix.c_str(),fname.c_str());
         ycsbKey internal_key(prefix,fname);
         bool res = db.Get(internal_key, value);
+        //END
+        //counter.PrintCurLate();
         if (res) {
             return DB::kOK;
         } else {
-            //printf("not found\n");
+            printf("not found\n");
         }
         return DB::kErrorNoData;
     }

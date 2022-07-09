@@ -9,29 +9,28 @@
 namespace hikvdb {
     const std::string PATH("/mnt/pmem1/hikv/");
     void HiKVDB::Init() {
-        if (std::filesystem::exists(PATH)) {
-            std::filesystem::remove_all(PATH);
+        if (!inited_) {
+            if (std::filesystem::exists(PATH)) {
+                std::filesystem::remove_all(PATH);
+            }
+            std::filesystem::create_directory(PATH);
+            open_hikv::HiKVConfig config {
+                    .pm_path_ = PATH,
+                    .store_size = 1024 * 1024 * 1024,
+                    .shard_size = 625000 * 16 * 4,
+                    .shard_num = 256,
+                    .message_queue_shard_num = 2,
+                    .log_path_ = PATH,
+                    .log_size_ = 60UL * 1024 * 1024 * 1024,
+                    .cceh_path_ = PATH,
+                    .cceh_size_ = 40UL * 1024 * 1024 * 1024,
+            };
+            open_hikv::OpenHiKV::OpenPlainVanillaOpenHiKV(&hikv_, config);
+            inited_ = true;
+        } else {
+           hikv_->Flush();
         }
-        std::filesystem::create_directory(PATH);
-        open_hikv::HiKVConfig config {
-            .pm_path_ = PATH,
-            .store_size = 1024 * 1024 * 1024,
-            .shard_size = 625000 * 16 * 4,
-            .shard_num = 256,
-            .message_queue_shard_num = 1,
-            .log_path_ = PATH,
-            .log_size_ = 60UL * 1024 * 1024 * 1024,
-            .cceh_path_ = PATH,
-            .cceh_size_ = 40UL * 1024 * 1024 * 1024,
-        };
-        /*open_hikv::HiKVConfig config {
-                .pm_path_ = "/mnt/pmem/hikv/",
-                .store_size = 10UL * 1024 * 1024 * 1024,
-                .shard_size = 65535 * 16 * 4,
-                .shard_num = 32,
-                .message_queue_shard_num = 4,
-        };*/
-        open_hikv::OpenHiKV::OpenPlainVanillaOpenHiKV(&hikv_, config);
+
     }
 
     void HiKVDB::Close() {}

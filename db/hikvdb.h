@@ -37,6 +37,7 @@ namespace hikvdb {
 
     private:
         std::unique_ptr<open_hikv::OpenHiKV> hikv_;
+        bool inited_ {false};
     };
 }
 

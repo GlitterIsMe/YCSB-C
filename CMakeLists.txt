@@ -29,7 +29,7 @@ link_libraries(${LIBPMEM_LIBRARIES})
 option(WITH_VIPER "support for Viper" OFF)
 option(WITH_CCEH "support for CCEH hash table" OFF)
 option(WITH_FASTFAIR "support for FASTFAIR" OFF)
-option(WITH_PMEM_ROCKSDB "support the pmem rocksdb" ON)
+option(WITH_PMEM_ROCKSDB "support the pmem rocksdb" OFF)
 option(WITH_UTREE "support for uTree" OFF)
 option(WITH_HIKV "support for HiKV" ON)
 option(WITH_ROART "support for ROART" OFF)
@@ -73,6 +73,7 @@ target_sources(ycsb PUBLIC
         "lib/string_hashtable.h"
         "lib/tbb_scan_hashtable.h"
         "lib/tbb_rand_hashtable.h"
+        "lib/latency_counter.cc"
         #"lib/pm_log_store.h"
 
         "ycsbc.cc"

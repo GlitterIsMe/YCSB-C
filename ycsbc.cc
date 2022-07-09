@@ -17,6 +17,7 @@
 #include "core/core_workload.h"
 #include "db/db_factory.h"
 #include "core/db.h"
+#include "lib/latency_counter.h"
 
 #ifdef USING_ROART
 #include "kv/roart/nvm_mgr/threadinfo.h"
@@ -105,9 +106,20 @@ int main(const int argc, const char *argv[]) {
   cout << "# Load throughput (KTPS)" << endl;
   cout << props["dbname"] << '\t' << file_name << '\t' << num_threads << '\t';
   cout << total_ops / duration1 / 1000 << endl;
+  cout << "Load index latency: " << counter.index << " us,\tavg lat: " << (double)counter.index / total_ops << "us \n";
+  cout << "Load log latency: " << counter.log << " us,\tavg lat: " << (double)counter.log / total_ops << "us \n";
+  counter.Clear();
 
     //db->Close();
     //return 0;
+
+    {
+        if (db_name == "hikv") {
+            printf("Waiting HiKV Background Jobs Finish...\n");
+            db->Init();
+            printf("HiKV Background Jobs Finished\n");
+        }
+    }
 
   // Peforms transactions
   total_finished.store(0);
@@ -127,9 +139,12 @@ int main(const int argc, const char *argv[]) {
     sum += n.get();
   }
   double duration = timer.End();
+  cout << "# Running operations:\t" << sum << " takes " << duration << " s"<< endl;
   cout << "# Transaction throughput (KTPS)" << endl;
   cout << props["dbname"] << '\t' << file_name << '\t' << num_threads << '\t';
   cout << total_ops / duration / 1000 << endl;
+  cout << "Transaction index latency: " << counter.index << " us,\tavg lat: " << (double)counter.index / total_ops << "us \n";
+  cout << "Transaction log latency: " << counter.log << " us,\tavg lat: " << (double)counter.log / total_ops << "us \n";
 
   db->Close();
   return 0;

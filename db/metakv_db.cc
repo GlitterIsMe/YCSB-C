@@ -90,9 +90,11 @@ namespace ycsb_metakv{
         db.Scan(prefix,records);
         // printf("%s %d prefix:%s get #%lu items\n",__func__,__LINE__,prefix.ToString().c_str(),records.size());
         for (const auto record : records) {
-           //record.key.ToString();
-           //record.value.ToString();
+            record.key.ToString();
+            record.value.ToString();
+            //printf("key size %lu, value size %lu\n", record.key.ToString().size(), record.value.ToString().size());
         }
+        //printf("total scan %d entries\n", records.size());
         return DB::kOK;
     }
 }

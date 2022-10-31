@@ -81,10 +81,10 @@ namespace roart_db{
     int RoartDB::Delete(const std::string &table, const std::string &key) {
         //std::string whole_key = table + key;
         std::string result;
-        bool res = db_->Get(key, &result);
-        if (res) {
+        //bool res = db_->Get(key, &result);
+        //if (res) {
             db_->Delete(key);
-        }
+        //}
         return DB::kOK;
     }
 }

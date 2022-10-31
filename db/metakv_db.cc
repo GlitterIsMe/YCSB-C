@@ -8,8 +8,9 @@
 namespace ycsb_metakv{
     void ycsbMetaKV::Init() {
         Options options;
-        options.cceh_file_size = 32UL * 1024 * 1024 * 1024;
+        options.cceh_file_size = 64UL * 1024 * 1024 * 1024;
         options.data_file_size = 128UL * 1024 * 1024 * 1024;
+        //options.log_start_chunk_size = 64 * 1024;
         db = MetaDB{};
         db.Open(options, "/mnt/pmem1/metakv");
 
@@ -17,6 +18,7 @@ namespace ycsb_metakv{
     }
 
     void ycsbMetaKV::Close() {
+        db.Close();
         printf("metakv delete false cnt:%lu\n",cnt.load());
     }
 
@@ -76,7 +78,21 @@ namespace ycsb_metakv{
 
     int ycsbMetaKV::Update(const std::string &table, const std::string &key, std::vector<KVPair> &values) {
         // for workload a/b/c/d/e/f should use insert instead of delete
-        return Delete(table,key);
+        //return Delete(table,key);
+        std::string whole_value;
+        //char raw[8];
+        //memcpy(raw, key.c_str(), 8);
+        //printf("%s, key [%llu + %s]\n", __FUNCTION__, *reinterpret_cast<uint64_t*>(raw), key.substr(8, whole_key.size() - 8).c_str());
+        for (auto item : values) {
+            //whole_value.append(item.first + item.second);
+            whole_value.append(item.second);
+        }
+        //printf("key size %lu, value size %lu\n", whole_key.size(), whole_value.size());
+        ycsbKey internal_key(key.substr(0, 8), key.substr(8, key.size() - 8));
+        ycsbValue internal_value(whole_value);
+        bool res = db.Update(internal_key, internal_value);
+        if (res) return DB::kOK;
+        return DB::kErrorNoData;
     }
 
     int ycsbMetaKV::Scan(const std::string &table, const std::string &key, int record_count,

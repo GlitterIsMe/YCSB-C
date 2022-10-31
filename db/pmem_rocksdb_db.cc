@@ -18,7 +18,7 @@ namespace ycsb_pmem_rocksdb{
     const std::string PMEM_PATH("/mnt/pmem1/rocksdb/");
     const std::string POOL_PATH("/mnt/pmem1/rocksdb/");
     const std::string DB_NAME("/mnt/pmem1/rocksdb/");
-    const uint64_t PMEM_SIZE = 32 * 1024UL * 1024UL * 1024UL;
+    const uint64_t PMEM_SIZE = 64 * 1024UL * 1024UL * 1024UL;
 
     void PmemRocksDB::Init() {
         if (std::filesystem::exists(DB_NAME)) {
@@ -27,7 +27,7 @@ namespace ycsb_pmem_rocksdb{
         std::filesystem::create_directory(DB_NAME);
         rocksdb::Options options;
 
-        options.max_background_jobs = 1;
+        options.max_background_jobs = 8;
 
         options.create_if_missing = true;
         options.dcpmm_kvs_enable = false;

@@ -1,29 +1,31 @@
 #!/bin/bash
 
 dbs=(
-    "pmem-rocksdb"
+    #"pmem-rocksdb"
     #"utree"
-    "hikv"
+    #"hikv"
     #"roart"
-    #"metakv"
+    "metakv"
     )
 
 workloads=(
     "read"
     #"delete"
-    "scan"
+    #"scan"
 )
 
 threads=(
   "1"
-  "2"
-  "4"
-  "8"
-  "16"
-  "32"
+  #"2"
+  #"4"
+  #"8"
+  #"16"
+  #"32"
 )
 
 frs=(
+"20"
+"40"
 "80"
 "160"
 #"320"
@@ -36,15 +38,16 @@ for tn in ${threads[@]};
   do
     rm -rf /mnt/pmem1/*
 
-    for workload in ${workloads[@]};
-    do
-    #for fr in ${frs[@]};
+    #for workload in ${workloads[@]};
     #do
-      echo "Run $db workload-$workload with threads $tn ratio-20" >> "ycsbc-rocksdb-hikv.output"
-      cmd="numactl -N 1 ./cmake-build-release-2373-physic/ycsb -db $db -threads $tn -P workloads/workload-$workload.spec -file_ratio 20 >> "ycsbc-rocksdb-hikv.output""
+    workload="read"
+    for fr in ${frs[@]};
+    do
+      echo "Run $db workload-$workload with threads $tn ratio-$fr" >> "ycsbc-metakv-put-fr-0714.output"
+      cmd="numactl -N 1 ./cmake-build-release-2373-physic/ycsb -db $db -threads $tn -P workloads/workload-$workload.spec -file_ratio $fr >> "ycsbc-metakv-put-fr-0714.output""
       echo $cmd
       #eval $cmd
-    #done
     done
+    #done
   done
 done

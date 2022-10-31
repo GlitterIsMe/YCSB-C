@@ -31,9 +31,9 @@ option(WITH_CCEH "support for CCEH hash table" OFF)
 option(WITH_FASTFAIR "support for FASTFAIR" OFF)
 option(WITH_PMEM_ROCKSDB "support the pmem rocksdb" OFF)
 option(WITH_UTREE "support for uTree" OFF)
-option(WITH_HIKV "support for HiKV" ON)
+option(WITH_HIKV "support for HiKV" OFF)
 option(WITH_ROART "support for ROART" OFF)
-option(WITH_METAKV "support for MetaKV" OFF)
+option(WITH_METAKV "support for MetaKV" ON)
 
 add_executable(ycsb "")
 target_sources(ycsb PUBLIC
@@ -147,14 +147,14 @@ if (WITH_METAKV)
     message("Define metakv")
     add_definitions(-DUSING_METAKV)
     add_subdirectory(lib/new-metakv)
-    target_sources(ycsb PUBLIC
+    target_sources(ycsb PRIVATE
             "db/metakv_db.cc"
             "db/metakv_db.h"
             )
-   # add_definitions(-DSIMPLEBUDDY)
-    add_definitions(-DBUDDY_IN_MEM)
-    target_link_directories(ycsb PUBLIC lib/new-metakv/src/CLHT)
-    target_include_directories(ycsb PUBLIC lib/new-metakv/src)
+    #add_definitions(-DSIMPLEBUDDY)
+    #add_definitions(-DBUDDY_IN_MEM)
+    target_link_directories(ycsb PRIVATE lib/new-metakv/src/CLHT)
+    target_include_directories(ycsb PRIVATE lib/new-metakv/src)
     target_link_libraries(ycsb metakv ${TBB_LIBRARIES} stdc++fs)
 endif()
 

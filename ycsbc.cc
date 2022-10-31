@@ -54,8 +54,10 @@ int DelegateClient(ycsbc::DB *db, ycsbc::CoreWorkload *wl, const int num_ops,
             oks += client.DoTransaction();
             count++;
         }
+        total_finished++;
         if (oks % 100000 == 0) {
-            fprintf(stderr, "...finished: %lu\r", total_finished.fetch_add(count, std::memory_order_acquire) + count);
+            //fprintf(stderr, "...finished: %lu\r", total_finished.fetch_add(count, std::memory_order_acquire) + count);
+            fprintf(stderr, "...finished: %lu\r", total_finished.load( std::memory_order_acquire));
             fflush(stderr);
             count = 0;
         }
@@ -111,6 +113,9 @@ int main(const int argc, const char *argv[]) {
     cout << "Load index latency: " << counter.index << " us,\tavg lat: " << (double) counter.index / total_ops
          << "us \n";
     cout << "Load log latency: " << counter.log << " us,\tavg lat: " << (double) counter.log / total_ops << "us \n";
+    cout << "Load CCEH latency: " << counter.cceh << " us,\tavg lat: " << (double) counter.cceh / total_ops << "us \n";
+    cout << "Load CLHT latency: " << counter.clht << " us,\tavg lat: " << (double) counter.clht / total_ops << "us \n";
+    cout << "Load Peta Log latency: " << counter.petalog << " us,\tavg lat: " << (double) counter.petalog / total_ops << "us \n";
     counter.Clear();
 
     //db->Close();
@@ -137,6 +142,28 @@ int main(const int argc, const char *argv[]) {
     assert((int) actual_ops.size() == num_threads);
 
     sum = 0;
+    {
+        /*uint64_t last_op = total_finished.load(std::memory_order_acquire), cur_op = 0;
+        int elapse = 1;
+        while(cur_op < total_ops) {
+            std::this_thread::sleep_for(std::chrono::seconds(elapse));
+            cur_op = total_finished.load(std::memory_order_acquire);
+            printf("cur throughput, %lu\n", (cur_op - last_op) / elapse);
+            last_op = cur_op;
+        }*/
+
+        /*auto last_time = std::chrono::high_resolution_clock::now(), cur_time = std::chrono::high_resolution_clock::now();
+        uint64_t cur_op = 0, last_op = 0;
+        while(cur_op < total_ops) {
+            if ((cur_op = total_finished.load(std::memory_order_acquire)) % 100000 == 0 && cur_op != last_op) {
+                cur_time = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<double, std::micro> elapse = cur_time - last_time;
+                printf("cur throughput, %lf\n", (cur_op - last_op) / elapse.count());
+                last_time = cur_time;
+                last_op = cur_op;
+            }
+        }*/
+    }
     for (auto &n: actual_ops) {
         assert(n.valid());
         sum += n.get();

@@ -8,6 +8,11 @@ pkg_check_modules(TBB REQUIRED tbb)
 add_subdirectory(redis)
 
 #add_definitions(-DGENERATE_PREFIX_KEY)
+option(LINK_FASTER "Support Faster" ON)
+
+if (LINK_FASTER)
+    add_subdirectory(FASTER/cc/src)
+endif ()
 
 add_executable(ycsb "")
 target_sources(ycsb PUBLIC
@@ -37,6 +42,8 @@ target_sources(ycsb PUBLIC
         "db/redis_db.h"
         "db/tbb_rand_db.h"
         "db/tbb_scan_db.h"
+        "db/faster_db.h"
+        "db/faster_db.cc"
 
         "lib/lock_stl_hashtable.h"
         "lib/mem_alloc.h"
@@ -51,3 +58,8 @@ target_sources(ycsb PUBLIC
 
 target_include_directories(ycsb PUBLIC .)
 target_link_libraries(ycsb ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES} hiredis)
+
+if (LINK_FASTER)
+    target_include_directories(ycsb PUBLIC FASTER/cc)
+    target_link_libraries(ycsb faster)
+endif ()

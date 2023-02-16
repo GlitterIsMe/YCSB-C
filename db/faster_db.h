@@ -38,7 +38,7 @@
         const char* data() const { return data_; }
 
         // Return the length (in bytes) of the referenced data
-        size_t size() const { return size_; }
+        constexpr size_t size() const { return size_; }
 
         // Return true iff the length of the referenced data is zero
         bool empty() const { return size_ == 0; }
@@ -112,8 +112,8 @@ using ycsbc_value_t = Slice;
 /// Class passed to store_t::Read().
 class ReadContext : public FASTER::core::IAsyncContext {
 public:
-    //typedef Key key_t;
-    //typedef Value value_t;
+    typedef ycsbc_key_t key_t;
+    typedef ycsbc_value_t value_t;
 
     ReadContext(Slice key)
             : key_{ key } {
@@ -131,14 +131,16 @@ public:
 
     // For this benchmark, we don't copy out, so these are no-ops.
     inline void Get(const ycsbc_value_t & value) {
-        char* tmp = new char[value.size()];
-        memcpy(tmp, value.data(), value.size());
-        value_ = new Slice(tmp, value.size());
+        //printf("Get value size %d\n", value.size());
+        //char* tmp = new char[value.size()];
+        //memcpy(tmp, value.data(), value.size());
+        //value_ = new Slice(tmp, value.size());
     }
     inline void GetAtomic(const ycsbc_value_t & value) {
-        char* tmp = new char[value.size()];
-        memcpy(tmp, value.data(), value.size());
-        value_ = new Slice(tmp, value.size());
+        //printf("GetAtomic value size %d\n", value.size());
+        //char* tmp = new char[value.size()];
+        //memcpy(tmp, value.data(), value.size());
+        //value_ = Slice(tmp, value.size());
     }
 
 protected:
@@ -149,13 +151,13 @@ protected:
 
 private:
     ycsbc_key_t key_;
-    ycsbc_value_t* value_;
+    ycsbc_value_t value_;
 };
 
 class UpsertContext : public FASTER::core::IAsyncContext {
 public:
-    //typedef Key key_t;
-    //typedef Value value_t;
+    typedef ycsbc_key_t key_t;
+    typedef ycsbc_value_t value_t;
 
     UpsertContext(ycsbc_key_t key, ycsbc_value_t input)
             : key_{ key }
@@ -172,7 +174,7 @@ public:
     inline const ycsbc_key_t & key() const {
         return key_;
     }
-    inline constexpr uint32_t value_size() {
+    inline constexpr uint32_t value_size() const {
         return input_.size();
     }
 
@@ -196,6 +198,8 @@ private:
     ycsbc_key_t key_;
     ycsbc_value_t input_;
 };
+
+extern FASTER::core::FasterKv<ycsbc_key_t, ycsbc_value_t, FASTER::device::FileSystemDisk<FASTER::environment::QueueIoHandler, 1073741824L>>* db;
 
 class FasterDB : public ycsbc::DB {
 public:
@@ -221,8 +225,8 @@ public:
 
     static int live_sessions;
 private:
-    static FASTER::core::FasterKv<ycsbc_key_t, ycsbc_value_t, FASTER::device::FileSystemDisk<FASTER::environment::QueueIoHandler, 1073741824L>>* db;
     FASTER::core::Guid session;
+    uint64_t seq;
 };
 
 

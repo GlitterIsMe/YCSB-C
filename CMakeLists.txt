@@ -61,5 +61,5 @@ target_link_libraries(ycsb ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES} hiredis)
 
 if (LINK_FASTER)
     target_include_directories(ycsb PUBLIC FASTER/cc)
-    target_link_libraries(ycsb faster)
+    target_link_libraries(ycsb faster stdc++fs uuid tbb gcc aio m stdc++ pthread)
 endif ()

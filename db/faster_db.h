@@ -105,8 +105,36 @@
         return r;
     }
 
-using ycsbc_key_t = Slice;
-using ycsbc_value_t = Slice;
+class FixedSizeKey {
+public:
+    FixedSizeKey(std::string value)
+            : key{ value }
+    {}
+
+    FixedSizeKey(const FixedSizeKey&) = default;
+
+    inline uint32_t size() const{
+        return static_cast<uint32_t>(key.size());
+    }
+
+    inline FASTER::core::KeyHash GetHash() const {
+        //HashFn hash_fn;
+        //return core::KeyHash{ hash_fn(key) };
+        return FASTER::core::KeyHash {FASTER::core::Utility::HashBytesUint8((uint8_t*)key.c_str(), key.size())};
+    }
+
+    inline bool operator==(const FixedSizeKey& other) const {
+        return key == other.key;
+    }
+    inline bool operator!=(const FixedSizeKey& other) const {
+        return key != other.key;
+    }
+
+    std::string key;
+};
+
+using ycsbc_key_t = FixedSizeKey;
+using ycsbc_value_t = std::string;
 
 
 /// Class passed to store_t::Read().
@@ -115,7 +143,7 @@ public:
     typedef ycsbc_key_t key_t;
     typedef ycsbc_value_t value_t;
 
-    ReadContext(Slice key)
+    ReadContext(key_t key)
             : key_{ key } {
     }
 
@@ -137,7 +165,7 @@ public:
         //value_ = new Slice(tmp, value.size());
     }
     inline void GetAtomic(const ycsbc_value_t & value) {
-        //printf("GetAtomic value size %d\n", value.size());
+        printf("GetAtomic value size %d\n", value.size());
         //char* tmp = new char[value.size()];
         //memcpy(tmp, value.data(), value.size());
         //value_ = Slice(tmp, value.size());
@@ -174,7 +202,7 @@ public:
     inline const ycsbc_key_t & key() const {
         return key_;
     }
-    inline constexpr uint32_t value_size() const {
+    inline  uint32_t value_size() const {
         return input_.size();
     }
 

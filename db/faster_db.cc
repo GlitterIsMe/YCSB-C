@@ -30,7 +30,7 @@ int FasterDB::Insert(const std::string &table, const std::string &key, std::vect
     for (auto segment : values) {
         whole_value.append(segment.second);
     }
-    UpsertContext ctx{Slice(key), Slice(whole_value)};
+    UpsertContext ctx{key, whole_value};
     auto callback = [](FASTER::core::IAsyncContext* ctxt, FASTER::core::Status result) {
         if (result != FASTER::core::Status::Ok) {
             fprintf(stderr, "Failed upsert requet\n");
@@ -38,7 +38,7 @@ int FasterDB::Insert(const std::string &table, const std::string &key, std::vect
     };
     db->Upsert(ctx, callback, 1);
 
-    /*ReadContext rctx {Slice(key)};
+    ReadContext rctx {key};
     auto rcallback = [](FASTER::core::IAsyncContext* ctxt, FASTER::core::Status result) {
         if (result != FASTER::core::Status::Ok) {
             fprintf(stderr, "Failed read requet\n");
@@ -47,7 +47,7 @@ int FasterDB::Insert(const std::string &table, const std::string &key, std::vect
             fprintf(stderr, "Not found key\n");
         }
     };
-    db->Read(rctx, rcallback, 1);*/
+    db->Read(rctx, rcallback, 1);
 
     db->Refresh();
     db->CompletePending(true);
@@ -58,7 +58,7 @@ int FasterDB::Insert(const std::string &table, const std::string &key, std::vect
 int FasterDB::Read(const std::string &table, const std::string &key, const std::vector<std::string> *fields,
                    std::vector<KVPair> &result) {
     //printf("get key %s\n", key.c_str());
-    ReadContext ctx {Slice(key)};
+    ReadContext ctx {key};
     auto callback = [](FASTER::core::IAsyncContext* ctxt, FASTER::core::Status result) {
         assert(result == FASTER::core::Status::Ok);
         if (result != FASTER::core::Status::Ok) {
